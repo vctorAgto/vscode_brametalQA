@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>61.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <decisions>
+        <name>Unidade_fabricante</name>
+        <label>Unidade fabricante</label>
+        <locationX>182</locationX>
+        <locationY>323</locationY>
+        <defaultConnector>
+            <targetReference>Dados_BRASUL</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Resultado padrão</defaultConnectorLabel>
+        <rules>
+            <name>BRASA</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Opportunity.Unidade_fabricante__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>BRASA</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atualiza_BRASA</targetReference>
+            </connector>
+            <label>BRASA</label>
+        </rules>
+    </decisions>
+    <environments>Default</environments>
+    <interviewLabel>Dados Brametal {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Dados Brametal</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Atualiza_BRASA</name>
+        <label>Atualiza BRASA</label>
+        <locationX>50</locationX>
+        <locationY>431</locationY>
+        <inputAssignments>
+            <field>Dados_Banc_rios__c</field>
+            <value>
+                <elementReference>BancarioBRASA</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Dados_Brametal__c</field>
+            <value>
+                <elementReference>DadosBRASA</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Dados_BRASUL</name>
+        <label>Dados BRASUL</label>
+        <locationX>314</locationX>
+        <locationY>431</locationY>
+        <inputAssignments>
+            <field>Dados_Banc_rios__c</field>
+            <value>
+                <elementReference>BancarioBRASUL</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Dados_Brametal__c</field>
+            <value>
+                <elementReference>DadosBRASUL</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Unidade_fabricante</targetReference>
+        </connector>
+        <object>Quote</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <textTemplates>
+        <name>BancarioBRASA</name>
+        <isViewedAsPlainText>false</isViewedAsPlainText>
+        <text>&lt;p&gt;&lt;span style=&quot;color: rgb(68, 68, 68); font-family: sans-serif; font-size: 14px;&quot;&gt;Banco Bradesco (237)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;color: rgb(68, 68, 68); font-family: sans-serif; font-size: 14px;&quot;&gt;Agência: 3511-4 Conta 14288-3&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;color: rgb(68, 68, 68); font-family: sans-serif; font-size: 14px;&quot;&gt;PIX: 83.249.078/0001-71&lt;/span&gt;&lt;/p&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>BancarioBRASUL</name>
+        <isViewedAsPlainText>false</isViewedAsPlainText>
+        <text>&lt;p&gt;Banco Bradesco (237)&lt;/p&gt;&lt;p&gt;Agência 3511-4 Conta 158006 – 0&lt;/p&gt;&lt;p&gt;Pix: 11.145.209/0001-60&lt;/p&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>DadosBRASA</name>
+        <isViewedAsPlainText>false</isViewedAsPlainText>
+        <text>&lt;p&gt;&lt;strong style=&quot;font-size: 12px;&quot;&gt;BRAMETAL S/A &lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Rodovia Governador Mário Covas, km 163 s/n Bairro - Rio Quartel, Linhares - ES. &lt;/span&gt;&lt;span style=&quot;font-size: 12px; background-color: rgb(255, 255, 255); color: rgb(68, 68, 68);&quot;&gt;CNPJ: 83.249.078/0001-71&lt;/span&gt;&lt;/p&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>DadosBRASUL</name>
+        <isViewedAsPlainText>false</isViewedAsPlainText>
+        <text>&lt;p&gt;&lt;strong&gt;BRAMETAL SUL METALURGICA LTDA &lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;color: rgb(68, 68, 68); background-color: rgb(255, 255, 255);&quot;&gt;Av. Boa Vista, 301 - Cidade Mineira, Criciúma - SC. CNPJ: 11.145.209/0001-60&lt;/span&gt;&lt;/p&gt;</text>
+    </textTemplates>
+</Flow>

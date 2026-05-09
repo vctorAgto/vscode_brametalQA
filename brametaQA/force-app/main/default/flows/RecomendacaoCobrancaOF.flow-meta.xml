@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>AcaoEnviarnotificaoPersonalizada</name>
+        <label>Ação Enviar notificação personalizada</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>customNotificationAction</actionName>
+        <actionType>customNotificationAction</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>customNotifTypeId</name>
+            <value>
+                <elementReference>ObterCustomNotificacao.Id</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>recipientIds</name>
+            <value>
+                <elementReference>varRecipientIds</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>title</name>
+            <value>
+                <elementReference>descricao</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>body</name>
+            <value>
+                <stringValue>O Cronograma Contratual {!$Record.Name} possui saldo pendente de R$ {!$Record.Saldo_cronograma_kg__c}. Regularize o saldo ou ajuste a data de recebimento da OF para que fique superior a 20 dias.</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>targetId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>customNotificationAction</nameSegment>
+        <offset>0</offset>
+    </actionCalls>
+    <apiVersion>65.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <name>add_variavel_recipients</name>
+        <label>add variavel recipients</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>varRecipientIds</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>obterContrato.OwnerId</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>ObterCustomNotificacao</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>temTarefas</name>
+        <label>temTarefas</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>add_variavel_recipients</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>sim</defaultConnectorLabel>
+        <rules>
+            <name>nao</name>
+            <conditionLogic>or</conditionLogic>
+            <conditions>
+                <leftValueReference>obterTarefa</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>obterTarefa</leftValueReference>
+                <operator>IsBlank</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>criarTarefa</targetReference>
+            </connector>
+            <label>nao</label>
+        </rules>
+    </decisions>
+    <description>Fluxo agendado executado diariamente para identificar registros do objeto Cronograma Contratual que estão próximos do prazo ou em atraso para recebimento da OF.
+
+Quando um registro atende às condições:
+
+Data atual – Data de Recebimento da OF ≤ 20 dias, e
+
+Saldo &gt; 0,
+
+o fluxo cria automaticamente uma Tarefa para o proprietário realizar a verificação/cobrança da OF.
+
+A tarefa é criada com base na lógica:
+
+Se DiasAtraso__c &gt; 0: tarefa marcada como atraso.
+
+Se DiasFaltando__c = 5: tarefa marcada como prazo crítico.
+
+Caso contrário: tarefa marcada como acompanhamento dentro dos 20 dias.
+
+Este fluxo garante que todos os cronogramas sejam revisados dentro do prazo, sem depender de acesso manual.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>assunto</name>
+        <dataType>String</dataType>
+        <expression>IF(
+    {!$Record.Diasatraso__c} &gt; 0,
+    &quot;Cobrança Automática de OF — Prazo vencido&quot;,
+    
+    IF(
+        {!$Record.DiasFaltando__c} = 5,
+        &quot;Cobrança Automática de OF — 5 dias restantes&quot;,
+        
+        &quot;Cobrança Automática de OF — 20 dias restantes&quot;
+    )
+)</expression>
+    </formulas>
+    <formulas>
+        <name>descricao</name>
+        <dataType>String</dataType>
+        <expression>IF(
+    {!$Record.DiasAtraso__c} &gt; 0,
+    &quot;A conta está vencida há &quot; &amp; TEXT({!$Record.DiasAtraso__c}) &amp;
+    &quot; dias. Saldo pendente: R$ &quot; &amp; TEXT({!$Record.Saldo_cronograma_kg__c}) &amp;
+    &quot;. Realizar cobrança imediata.&quot;,
+    
+    IF(
+        {!$Record.DiasFaltando__c} = 5,
+        &quot;Faltam 5 dias para o limite de 20 dias desde o recebimento da OF. Saldo pendente: R$ &quot; &amp;
+        TEXT({!$Record.Saldo_cronograma_kg__c}) &amp; &quot;. Realizar contato e ajuste.&quot;,
+        
+        &quot;Faltam 20 dias para o limite de 20 dias desde o recebimento da OF. Saldo pendente: R$ &quot; &amp;
+        TEXT({!$Record.Saldo_cronograma_kg__c}) &amp; &quot;. Realizar acompanhamento.&quot;
+    )
+)</expression>
+    </formulas>
+    <interviewLabel>DW {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Recomendacao Cobranca OF</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>criarTarefa</name>
+        <label>criar tarefa</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>add_variavel_recipients</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>ActivityDate</field>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <stringValue>Realizar contato com o cliente , confirmar status, verificar pendências e registrar as informações no Salesforce.</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>obterContrato.OwnerId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Open</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <stringValue>Verificação do cronograma contratual e saldo pendente</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordLookups>
+        <name>obterContrato</name>
+        <label>obter Contrato</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>obterTarefa</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Contrato__c</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Contract</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>ObterCustomNotificacao</name>
+        <label>Obter custom notificação</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>AcaoEnviarnotificaoPersonalizada</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>notificacao</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomNotificationType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>obterTarefa</name>
+        <label>obter Tarefa</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>temTarefas</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>WhatId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>Subject</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Verificação do cronograma contratual e saldo pendente</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>obterContrato</targetReference>
+        </connector>
+        <filterLogic>(1 AND 2) OR (2 AND 3) OR (4)</filterLogic>
+        <filters>
+            <field>DiasFaltando__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <numberValue>20.0</numberValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Saldo_cronograma_kg__c</field>
+            <operator>GreaterThan</operator>
+            <value>
+                <numberValue>0.0</numberValue>
+            </value>
+        </filters>
+        <filters>
+            <field>DiasFaltando__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <numberValue>5.0</numberValue>
+            </value>
+        </filters>
+        <filters>
+            <field>DiasAtraso__c</field>
+            <operator>GreaterThan</operator>
+            <value>
+                <numberValue>0.0</numberValue>
+            </value>
+        </filters>
+        <object>Cronograma_contratual__c</object>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2025-11-18</startDate>
+            <startTime>14:23:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Draft</status>
+    <variables>
+        <name>varRecipientIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>

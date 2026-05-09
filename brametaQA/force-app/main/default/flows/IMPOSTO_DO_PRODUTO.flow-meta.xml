@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>54.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <formulas>
+        <description>Concatena ID do produto e Estado</description>
+        <name>IDdoprodutoeEstado</name>
+        <dataType>String</dataType>
+        <expression>{!$Record.Produto__r.Id} + &apos;-&apos; + TEXT({!$Record.Estado__c})</expression>
+    </formulas>
+    <interviewLabel>IMPOSTO DO PRODUTO {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>IMPOSTO DO PRODUTO</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>ID_Exclusivo</name>
+        <label>ID Exclusivo</label>
+        <locationX>176</locationX>
+        <locationY>311</locationY>
+        <inputAssignments>
+            <field>ID_Exclusivo__c</field>
+            <value>
+                <elementReference>IDdoprodutoeEstado</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>ID_Exclusivo</targetReference>
+        </connector>
+        <object>Imposto_do_Produto__c</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <name>Atribui_peso_total</name>
+        <label>Atribui peso total</label>
+        <locationX>270</locationX>
+        <locationY>539</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Peso_total__c</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Calcula_peso_total</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Cacula_valor_total</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Cacula_valor_total</name>
+        <label>Cacula_valor_total</label>
+        <locationX>270</locationX>
+        <locationY>647</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Valor_total_Com_impostos__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Calulcavalortotal</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Atualiza_Peso</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Converter_Percentual_de_zinco</name>
+        <label>Converter Percentual de zinco</label>
+        <locationX>270</locationX>
+        <locationY>431</locationY>
+        <assignmentItems>
+            <assignToReference>percentualZinco</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>ConverterPicklist</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Atribui_peso_total</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>Escolhe_cota_o</name>
+        <label>Escolhe cotação</label>
+        <locationX>182</locationX>
+        <locationY>323</locationY>
+        <defaultConnector>
+            <targetReference>Converter_Percentual_de_zinco</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Resultado padrão</defaultConnectorLabel>
+        <rules>
+            <name>Principal</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Cotacao_principal__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Cotacao_principal__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Limpa_Cota_o_principal</targetReference>
+            </connector>
+            <label>Principal</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Tratar_data</name>
+        <label>Tratar data</label>
+        <locationX>182</locationX>
+        <locationY>1487</locationY>
+        <defaultConnectorLabel>Resultado padrão</defaultConnectorLabel>
+        <rules>
+            <name>Data_expirada</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.ExpirationDate</leftValueReference>
+                <operator>LessThan</operator>
+                <rightValue>
+                    <elementReference>$Flow.CurrentDate</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atualiza_data</targetReference>
+            </connector>
+            <label>Data expirada</label>
+        </rules>
+    </decisions>
+    <description>Inclusão de atualização de valores e peso da oportunidade relacionada.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>Calcula_peso_total</name>
+        <dataType>Number</dataType>
+        <expression>{!$Record.Quantidade_total__c} + ({!$Record.Quantidade_total__c} * {!percentualZinco})</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Calulcavalortotal</name>
+        <dataType>Number</dataType>
+        <expression>{!Calcula_peso_total} * {!$Record.Valor_unit_rio_Com_impostos__c}</expression>
+        <scale>3</scale>
+    </formulas>
+    <formulas>
+        <name>ConverterPicklist</name>
+        <dataType>Number</dataType>
+        <expression>IF(
+  TEXT({!$Record.Percentual_de_zinco__c}) = &quot;4,5%&quot;, 0.045,
+  IF(
+     TEXT({!$Record.Percentual_de_zinco__c}) = &quot;5%&quot;, 0.050,
+    IF(
+      TEXT({!$Record.Percentual_de_zinco__c}) = &quot;6%&quot;, 0.060,
+IF(
+      TEXT({!$Record.Percentual_de_zinco__c}) = &quot;7,2%&quot;, 0.072,
+IF(
+      TEXT({!$Record.Percentual_de_zinco__c}) = &quot;8%&quot;, 0.080,
+IF(
+      TEXT({!$Record.Percentual_de_zinco__c}) = &quot;9%&quot;, 0.090,
+IF(
+      TEXT({!$Record.Percentual_de_zinco__c}) = &quot;10%&quot;, 0.100,
+
+      0
+    )
+)
+)
+)
+)
+  )
+)</expression>
+        <scale>3</scale>
+    </formulas>
+    <interviewLabel>Atualiza cotação serviços {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Atualiza cotação serviços</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Atualiza_data</name>
+        <label>Atualiza data</label>
+        <locationX>50</locationX>
+        <locationY>1595</locationY>
+        <inputAssignments>
+            <field>ExpirationDate</field>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_item_da_linha_de_cotacao</name>
+        <label>Atualiza item da linha de cotação</label>
+        <locationX>182</locationX>
+        <locationY>1271</locationY>
+        <connector>
+            <targetReference>Atualiza_oportunidade</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>QuoteId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Quantity</field>
+            <value>
+                <elementReference>$Record.Peso_total__c</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>UnitPrice</field>
+            <value>
+                <elementReference>$Record.Valor_unit_rio_Com_impostos__c</elementReference>
+            </value>
+        </inputAssignments>
+        <object>QuoteLineItem</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_oportunidade</name>
+        <label>Atualiza oportunidade</label>
+        <locationX>182</locationX>
+        <locationY>1379</locationY>
+        <connector>
+            <targetReference>Tratar_data</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Numero_da_oportunidade__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Numero_da_oportunidade__c</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Amount</field>
+            <value>
+                <elementReference>Calulcavalortotal</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Cota_o_principal__c</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Peso__c</field>
+            <value>
+                <elementReference>Calcula_peso_total</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Opportunity</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_Peso</name>
+        <label>Atualiza Peso</label>
+        <locationX>270</locationX>
+        <locationY>755</locationY>
+        <connector>
+            <targetReference>Atualiza_valor</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Peso_total__c</field>
+            <value>
+                <elementReference>Calcula_peso_total</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Valor_total_Com_impostos__c</field>
+            <value>
+                <elementReference>Calulcavalortotal</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_valor</name>
+        <label>Atualiza valor</label>
+        <locationX>270</locationX>
+        <locationY>863</locationY>
+        <connector>
+            <targetReference>Limpa_Cota_o_principal</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Valor_total_Com_impostos__c</field>
+            <value>
+                <elementReference>Calulcavalortotal</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Define_cota_o_principal</name>
+        <label>Define cotação principal</label>
+        <locationX>182</locationX>
+        <locationY>1163</locationY>
+        <connector>
+            <targetReference>Atualiza_item_da_linha_de_cotacao</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Cotacao_principal__c</field>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Limpa_Cota_o_principal</name>
+        <label>Limpa Cotação principal</label>
+        <locationX>182</locationX>
+        <locationY>1055</locationY>
+        <connector>
+            <targetReference>Define_cota_o_principal</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>OpportunityId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.OpportunityId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Cotacao_principal__c</field>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </inputAssignments>
+        <object>Quote</object>
+    </recordUpdates>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Escolhe_cota_o</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>RecordTypeId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>012bJ000000DLppQAG</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Cotacao_principal__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Quantidade_total__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Valor_unit_rio_Com_impostos__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <object>Quote</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>percentualZinco</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <scale>0</scale>
+    </variables>
+</Flow>

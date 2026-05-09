@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>65.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <decisions>
+        <name>Encontra_faixa_de_peso</name>
+        <label>Encontra faixa de peso</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Resultado padrão</defaultConnectorLabel>
+        <rules>
+            <name>Faixa_1_Menor_que_100Ton</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>LessThanOrEqualTo</operator>
+                <rightValue>
+                    <numberValue>100000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atribui_at_100Ton</targetReference>
+            </connector>
+            <label>Faixa 1 (Menor que 100Ton)</label>
+        </rules>
+        <rules>
+            <name>Faixa_2_101Ton_200Ton</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>100000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>LessThanOrEqualTo</operator>
+                <rightValue>
+                    <numberValue>200000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atribui_101_200</targetReference>
+            </connector>
+            <label>Faixa 2 (101Ton - 200Ton)</label>
+        </rules>
+        <rules>
+            <name>Faixa_3_201Ton_400Ton</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>200000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>LessThanOrEqualTo</operator>
+                <rightValue>
+                    <numberValue>400000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atribui_201_400</targetReference>
+            </connector>
+            <label>Faixa 3 (201Ton - 400Ton)</label>
+        </rules>
+        <rules>
+            <name>Faixa_4_Maior_401Ton</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Peso__c</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>400000.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atribui_maior_que_400</targetReference>
+            </connector>
+            <label>Faixa 4 ( Maior 401Ton)</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Tipo_da_oportunidade</name>
+        <label>Tipo da oportunidade</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Encontra_faixa_de_peso</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Outras Unidades (Postes)</defaultConnectorLabel>
+        <rules>
+            <name>Servi_os</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Unidade_de_Negocio__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Servicos</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Atualiza_Comiss_o_Servi_os</targetReference>
+            </connector>
+            <label>Serviços</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Verifica_usu_rio_representante</name>
+        <label>Verifica usuário representante</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Limpa_campos</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Não representante</defaultConnectorLabel>
+        <rules>
+            <name>Representante</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Owner.Profile.Name</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Representante</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Tipo_da_oportunidade</targetReference>
+            </connector>
+            <label>Representante</label>
+        </rules>
+    </decisions>
+    <environments>Default</environments>
+    <formulas>
+        <name>A101_200_ton</name>
+        <dataType>Currency</dataType>
+        <expression>(
+100000 * {!Valor_kg} * 0.02
+)
++
+(
+($Record.Peso__c - 100000) * {!Valor_kg} * 0.016
+)</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>A201_400ton</name>
+        <dataType>Currency</dataType>
+        <expression>(
+100000 * {!Valor_kg} * 0.02
+)
++
+(
+100000 * {!Valor_kg} * 0.016
+)
++
+(
+($Record.Peso__c - 200000) * {!Valor_kg} * 0.012
+)</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Acima_400_Ton</name>
+        <dataType>Currency</dataType>
+        <expression>(
+100000 * {!Valor_kg} * 0.02
+)
++
+(
+100000 * {!Valor_kg} * 0.016
+)
++
+(
+200000 * {!Valor_kg} * 0.012
+)
++
+(
+($Record.Peso__c - 400000) * {!Valor_kg} * 0.009
+)</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Ate_100_ton</name>
+        <dataType>Currency</dataType>
+        <expression>{!$Record.Amount} * 0.02</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Comissao_Gal</name>
+        <dataType>Currency</dataType>
+        <expression>{!$Record.Amount} * 0.05</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>taxa_efetiva</name>
+        <dataType>Number</dataType>
+        <expression>{!$Record.Comiss_o__c}/ {!$Record.Amount} * 100</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Valor_kg</name>
+        <dataType>Currency</dataType>
+        <expression>{!$Record.Amount} / {!$Record.Peso__c}</expression>
+        <scale>2</scale>
+    </formulas>
+    <interviewLabel>Atualiza_comissao {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Atualiza_comissao</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Atribui_101_200</name>
+        <label>Atribui 101 - 200</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Atualiza_Taxa_efetiva</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+            <value>
+                <elementReference>A101_200_ton</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atribui_201_400</name>
+        <label>Atribui 201 - 400</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Atualiza_Taxa_efetiva</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+            <value>
+                <elementReference>A201_400ton</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atribui_at_100Ton</name>
+        <label>Atribui até 100Ton</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Atualiza_Taxa_efetiva</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+            <value>
+                <elementReference>Ate_100_ton</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atribui_maior_que_400</name>
+        <label>Atribui maior que 400</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Atualiza_Taxa_efetiva</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+            <value>
+                <elementReference>Acima_400_Ton</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_Comiss_o_Servi_os</name>
+        <label>Atualiza Comissão - Serviços</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Atualiza_Taxa_efetiva</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+            <value>
+                <elementReference>Comissao_Gal</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Atualiza_Taxa_efetiva</name>
+        <label>Atualiza Taxa efetiva</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>taxa_efetiva_comissao__c</field>
+            <value>
+                <elementReference>taxa_efetiva</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Limpa_campos</name>
+        <label>Limpa campos</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Comiss_o__c</field>
+        </inputAssignments>
+        <inputAssignments>
+            <field>taxa_efetiva_comissao__c</field>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Verifica_usu_rio_representante</targetReference>
+        </connector>
+        <filterLogic>(1 OR 2) and 3</filterLogic>
+        <filters>
+            <field>Setor_de_atividade__c</field>
+            <operator>StartsWith</operator>
+            <value>
+                <stringValue>Poste</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Unidade_de_Negocio__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Servicos</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Mercado__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Interno</stringValue>
+            </value>
+        </filters>
+        <object>Opportunity</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
